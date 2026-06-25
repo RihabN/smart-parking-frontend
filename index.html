@@ -322,12 +322,32 @@
       50% { text-shadow: 0 0 20px rgba(255,217,61,0.8); }
     }
 
-    /* CHART */
+    /* CHART CONTAINERS */
     .chart-container { height: 140px; margin-top: 12px; }
+    .mini-chart-container { height: 100px; margin-top: 8px; }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .charts-grid .chart-box {
+      background: var(--bg-soft);
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid var(--panel-border);
+    }
+    .charts-grid .chart-box .chart-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 6px;
+    }
 
     /* CHAT */
     .chat-log {
-      height: 220px;
+      height: 200px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -433,6 +453,7 @@
 
   <div class="main-grid">
 
+    <!-- COLONNE GAUCHE -->
     <div class="card">
       <div class="card-title">
         <span><i class="fas fa-car"></i> État des places</span>
@@ -472,15 +493,38 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title"><span><i class="fas fa-robot"></i> Assistant IA</span></div>
-      <div class="chat-log" id="chatLog">
-        <div class="msg bot"><i class="fas fa-comment"></i> Bonjour ! Posez-moi une question sur le parking, par exemple : <em>"Combien de temps avant qu'il soit plein ?"</em></div>
+    <!-- COLONNE DROITE -->
+    <div>
+      <!-- Carte des graphiques supplémentaires -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title"><span><i class="fas fa-chart-pie"></i> Répartition &amp; Tendances</span></div>
+        <div class="charts-grid">
+          <div class="chart-box">
+            <div class="chart-label">Occupancy</div>
+            <div style="height:100px;">
+              <canvas id="doughnutChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-label">Dernières 10 places occupées</div>
+            <div style="height:100px;">
+              <canvas id="barChart"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
-      <form class="chat-form" id="chatForm">
-        <input type="text" id="chatInput" placeholder="Posez votre question..." autocomplete="off" />
-        <button type="submit" id="chatSend"><i class="fas fa-paper-plane"></i></button>
-      </form>
+
+      <!-- Carte du chat -->
+      <div class="card">
+        <div class="card-title"><span><i class="fas fa-robot"></i> Assistant IA</span></div>
+        <div class="chat-log" id="chatLog">
+          <div class="msg bot"><i class="fas fa-comment"></i> Bonjour ! Posez-moi une question sur le parking, par exemple : <em>"Combien de temps avant qu'il soit plein ?"</em></div>
+        </div>
+        <form class="chat-form" id="chatForm">
+          <input type="text" id="chatInput" placeholder="Posez votre question..." autocomplete="off" />
+          <button type="submit" id="chatSend"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
     </div>
 
   </div>
@@ -494,6 +538,7 @@
     const TOTAL_SLOTS = 10;
     const REFRESH_INTERVAL = 3000;
 
+    // DOM refs
     const bayGrid = document.getElementById("bayGrid");
     const freeCount = document.getElementById("freeCount");
     const occCount = document.getElementById("occCount");
@@ -508,8 +553,12 @@
     const lastUpdate = document.getElementById("lastUpdate");
     const themeToggle = document.getElementById("themeToggle");
 
-    let chartInstance = null;
+    // Chart instances
+    let historyChartInstance = null;
+    let doughnutChartInstance = null;
+    let barChartInstance = null;
 
+    // Build bay grid
     for (let i = 0; i < TOTAL_SLOTS; i++) {
       const bay = document.createElement("div");
       bay.className = "bay";
@@ -541,6 +590,7 @@
       }
     }
 
+    // API calls
     async function fetchStatus() {
       const res = await fetch(`${API_BASE}/api/status`);
       return res.json();
@@ -558,6 +608,7 @@
       return res.json();
     }
 
+    // Refresh functions
     async function refreshStatus() {
       refreshBtn.classList.add("loading");
       refreshLabel.textContent = "Mise à jour...";
@@ -569,6 +620,8 @@
         freeCount.textContent = data.available;
         occCount.textContent = data.occupied;
         updateTimestamp();
+        // Update doughnut chart with latest data
+        updateDoughnutChart(data.available, data.occupied);
       } catch (e) {
         setConnection(false);
       } finally {
@@ -600,7 +653,89 @@
       }
     }
 
-    async function refreshChart() {
+    // Chart update functions
+    function updateDoughnutChart(available, occupied) {
+      const ctx = document.getElementById("doughnutChart").getContext("2d");
+      if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
+      const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
+
+      doughnutChartInstance = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Libres", "Occupées"],
+          datasets: [{
+            data: [available, occupied],
+            backgroundColor: ["#66d9a0", "#ff6b6b"],
+            borderColor: [textColor, textColor],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "60%",
+          plugins: {
+            legend: {
+              labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 }
+            }
+          }
+        }
+      });
+    }
+
+    async function refreshBarChart() {
+      try {
+        const data = await fetchHistory(10);
+        if (!data || data.length === 0) return;
+        const labels = data.map(d => new Date(d.timestamp).toLocaleTimeString());
+        const occupied = data.map(d => d.occupied);
+
+        const ctx = document.getElementById("barChart").getContext("2d");
+        if (barChartInstance) barChartInstance.destroy();
+
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
+        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
+
+        barChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Occupées",
+              data: occupied,
+              backgroundColor: "#ff6b6b",
+              borderColor: "#ff6b6b",
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: dimColor, font: { size: 6 }, maxTicksLimit: 10 },
+                grid: { display: false }
+              },
+              y: {
+                ticks: { color: dimColor, font: { size: 6 }, stepSize: 2 },
+                grid: { color: 'rgba(255,255,255,0.05)' }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn("Bar chart error", e);
+      }
+    }
+
+    async function refreshHistoryChart() {
       try {
         const data = await fetchHistory(50);
         if (!data || data.length === 0) return;
@@ -609,12 +744,12 @@
         const occupied = data.map(d => d.occupied);
 
         const ctx = document.getElementById("historyChart").getContext("2d");
-        if (chartInstance) chartInstance.destroy();
+        if (historyChartInstance) historyChartInstance.destroy();
 
         const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
         const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
 
-        chartInstance = new Chart(ctx, {
+        historyChartInstance = new Chart(ctx, {
           type: "line",
           data: {
             labels: labels,
@@ -665,15 +800,20 @@
           }
         });
       } catch (e) {
-        console.warn("Chart error", e);
+        console.warn("History chart error", e);
       }
     }
 
     async function refreshAll() {
       await refreshStatus();
-      await Promise.all([refreshPrediction(), refreshChart()]);
+      await Promise.all([
+        refreshPrediction(),
+        refreshHistoryChart(),
+        refreshBarChart()
+      ]);
     }
 
+    // Event listeners
     refreshBtn.addEventListener("click", async () => {
       await refreshAll();
       await refreshGuidance();
@@ -684,9 +824,13 @@
       const next = current === "light" ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", next);
       themeToggle.innerHTML = next === "light" ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-      refreshChart();
+      // Redraw charts with new colors
+      refreshHistoryChart();
+      refreshBarChart();
+      // Doughnut is recreated each time via refreshStatus
     });
 
+    // Chat
     const chatLog = document.getElementById("chatLog");
     const chatForm = document.getElementById("chatForm");
     const chatInput = document.getElementById("chatInput");
@@ -724,6 +868,7 @@
       }
     });
 
+    // Initialisation
     (async function init() {
       await refreshAll();
       await refreshGuidance();
