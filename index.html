@@ -3,65 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Smart Parking — Console de supervision</title>
-   <link rel="icon" type="image/jpeg" href="https://thumbs.dreamstime.com/b/logo-de-ferrari-sur-le-fond-rouge-10801756.jpg" />
+
+  <title>SmartPark — Console de supervision</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23f4c430'/%3E%3Ctext x='50' y='72' font-family='Georgia,serif' font-weight='bold' font-size='68' text-anchor='middle' fill='%2314151a'%3EP%3C/text%3E%3C/svg%3E" />
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Barlow Condensed (signage/industrial), Inter (body), JetBrains Mono (data/LED) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     :root {
-      --bg: #0b0e14;
-      --bg-soft: #141a24;
-      --panel: #1b2330;
-      --panel-border: #2a3442;
-      --text: #eef2f8;
-      --text-dim: #8b9ab0;
-      --accent: #4fc3f7;
-      --green: #66d9a0;
-      --green-dim: #1b4a3a;
-      --red: #ff6b6b;
-      --red-dim: #5a2525;
-      --yellow: #ffd93d;
-      --shadow: 0 8px 32px rgba(0,0,0,0.5);
-      --radius: 16px;
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      /* ---- Design tokens : "parking garage at night" palette ---- */
+      --bg: #101116;
+      --bg-soft: #191b21;
+      --panel: #1e2028;
+      --panel-border: #2f323b;
+      --text: #edeff3;
+      --text-dim: #8b9099;
+      --paint: #f4c430;       /* line-paint yellow — signature accent */
+      --paint-dim: #4a3d14;
+      --accent: #5fb8e6;      /* digital / AI blue, distinct from hazard yellow */
+      --accent-dim: #17313f;
+      --green: #34d399;
+      --green-dim: #123626;
+      --red: #fb7185;
+      --red-dim: #3a151d;
+      --shadow: 0 10px 36px rgba(0,0,0,0.45);
+      --radius: 14px;
+      --radius-lg: 20px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --stripe: repeating-linear-gradient(135deg, var(--paint) 0 10px, #14151a 10px 20px);
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
+
     [data-theme="light"] {
-      --bg: #eef2f8;
-      --bg-soft: #dce2ec;
-      --panel: #ffffff;
-      --panel-border: #c8d0dc;
-      --text: #1a2332;
-      --text-dim: #5a6a7e;
-      --accent: #0a7ab3;
-      --green: #1f9d6a;
-      --green-dim: #b8e6d0;
-      --red: #c42e2e;
-      --red-dim: #f5d0d0;
-      --yellow: #d4a800;
-      --shadow: 0 8px 32px rgba(0,0,0,0.08);
+      --bg: #f0ede4;
+      --bg-soft: #e3ded0;
+      --panel: #fbf9f3;
+      --panel-border: #d4cdb9;
+      --text: #1b1d22;
+      --text-dim: #6b6659;
+      --paint: #b8860b;
+      --paint-dim: #f1e2b0;
+      --accent: #0d7ab0;
+      --accent-dim: #d6ecf6;
+      --green: #14875a;
+      --green-dim: #cdeadd;
+      --red: #c62e42;
+      --red-dim: #f6d4d9;
+      --shadow: 0 10px 30px rgba(30,25,10,0.10);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
     }
 
     body {
       background: var(--bg);
+      background-image: radial-gradient(circle at 15% 0%, rgba(244,196,48,0.05), transparent 45%);
       color: var(--text);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       min-height: 100vh;
-      padding: 24px;
+      padding: 20px;
       transition: background var(--transition), color var(--transition);
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--paint); outline-offset: 2px; border-radius: 6px; }
+
+    /* ============ HEADER : highway gantry sign feel ============ */
     .header {
+      position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -69,180 +93,193 @@
       gap: 16px;
       background: var(--panel);
       border: 1px solid var(--panel-border);
-      border-radius: var(--radius);
-      padding: 16px 24px;
+      border-radius: var(--radius-lg);
+      padding: 18px 26px;
       box-shadow: var(--shadow);
       transition: all var(--transition);
+      overflow: hidden;
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .header::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 6px;
+      background: var(--stripe);
     }
-    .logo i {
-      font-size: 2rem;
-      color: var(--accent);
+    .logo { display: flex; align-items: center; gap: 14px; padding-left: 8px; }
+    .logo-badge {
+      width: 46px; height: 46px;
+      border-radius: 10px;
+      background: var(--paint);
+      color: #14151a;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(244,196,48,0.35);
     }
     .logo h1 {
-      font-size: 1.6rem;
+      font-family: var(--font-display);
+      font-size: 2rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, var(--accent), var(--green));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      letter-spacing: 0.5px;
+      line-height: 1;
+      text-transform: uppercase;
     }
     .logo p {
-      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
       color: var(--text-dim);
-      margin-top: 2px;
-      -webkit-text-fill-color: var(--text-dim);
+      margin-top: 4px;
+      letter-spacing: 0.3px;
     }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
     .conn-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 6px 14px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 600;
+      padding: 7px 14px;
       border-radius: 40px;
       background: var(--bg-soft);
       border: 1px solid var(--panel-border);
       color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
-    .conn-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--red);
-      transition: background var(--transition);
-    }
-    .conn-dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); transition: background var(--transition); flex-shrink: 0; }
+    .conn-dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); animation: breathe 2.4s ease-in-out infinite; }
+    @keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
     .btn-icon {
-      width: 38px;
-      height: 38px;
+      width: 40px; height: 40px;
       border-radius: 50%;
       border: 1px solid var(--panel-border);
       background: var(--bg-soft);
       color: var(--text);
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       cursor: pointer;
       transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     .btn-icon:hover { background: var(--panel-border); transform: translateY(-2px); }
+    .btn-icon:active { transform: translateY(0) scale(0.94); }
+
     .btn-primary {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 18px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 20px;
       border: none;
       border-radius: 40px;
-      background: var(--green);
-      color: #000;
-      font-weight: 600;
-      font-size: 0.85rem;
+      background: var(--paint);
+      color: #14151a;
+      font-weight: 700;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
       cursor: pointer;
       transition: all var(--transition);
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,217,160,0.3); }
-    .btn-primary.loading { opacity: 0.6; pointer-events: none; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(244,196,48,0.3); }
+    .btn-primary:active { transform: translateY(0) scale(0.97); }
+    .btn-primary.loading { opacity: 0.65; pointer-events: none; }
     .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(0,0,0,0.2);
-      border-top-color: #000;
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(20,21,26,0.3);
+      border-top-color: #14151a;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 24px;
-    }
-    @media (max-width: 880px) { .main-grid { grid-template-columns: 1fr; } }
+    /* ============ LAYOUT ============ */
+    .main-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
     .card {
       background: var(--panel);
       border: 1px solid var(--panel-border);
-      border-radius: var(--radius);
-      padding: 24px;
+      border-radius: var(--radius-lg);
+      padding: 22px;
       box-shadow: var(--shadow);
       transition: all var(--transition);
     }
     .card-title {
-      font-size: 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--text-dim);
+      letter-spacing: 0.8px;
+      color: var(--text);
       margin-bottom: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
     }
+    .card-title i { color: var(--paint); margin-right: 6px; }
     .card-title .badge {
       font-size: 0.65rem;
       background: var(--bg-soft);
-      padding: 4px 12px;
+      padding: 5px 12px;
       border-radius: 30px;
       color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
+      text-transform: none;
+      letter-spacing: 0;
+      white-space: nowrap;
     }
 
-    /* BAYS */
+    /* ============ BAY GRID : painted parking-spot look ============ */
+    .bay-grid-wrap { position: relative; margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
     .bay-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .bay {
-      aspect-ratio: 1 / 1.2;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 600;
+      gap: 10px;
       background: var(--bg-soft);
-      border: 2px solid var(--panel-border);
+      padding: 12px;
+      border-radius: 12px;
+      position: relative;
+    }
+    @media (max-width: 460px) { .bay-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .sweep-line {
+      position: absolute; top: 0; bottom: 0; left: 0; width: 3px;
+      background: linear-gradient(180deg, transparent, var(--paint), transparent);
+      opacity: 0.6;
+      animation: sweep 4s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes sweep { 0% { left: 0%; } 100% { left: 100%; } }
+
+    .bay {
+      aspect-ratio: 1 / 1.15;
+      border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 700;
+      background: var(--panel);
+      border: 2px dashed var(--panel-border);
       transition: all var(--transition);
       color: var(--text-dim);
-      gap: 4px;
+      gap: 5px;
+      position: relative;
     }
-    .bay i { font-size: 1.6rem; }
+    .bay i { font-size: 1.4rem; transition: all var(--transition); }
     .bay.free {
-      border-color: var(--green);
-      background: var(--green-dim);
-      color: var(--green);
+      border-style: solid; border-color: var(--green);
+      background: var(--green-dim); color: var(--green);
     }
     .bay.occupied {
-      border-color: var(--red);
-      background: var(--red-dim);
-      color: var(--red);
+      border-style: solid; border-color: var(--red);
+      background: var(--red-dim); color: var(--red);
     }
+    .bay.just-changed { animation: flash 0.6s ease; }
+    @keyframes flash { 0% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    .bay.skeleton { background: var(--bg-soft); border-style: dashed; animation: shimmer 1.6s ease-in-out infinite; }
+    @keyframes shimmer { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 
-    /* COUNTERS */
-    .counters {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
+    /* ============ COUNTERS ============ */
+    .counters { display: flex; gap: 14px; margin-bottom: 16px; }
     .counter {
       flex: 1;
       background: var(--bg-soft);
@@ -250,198 +287,185 @@
       padding: 14px 16px;
       border: 1px solid var(--panel-border);
       text-align: center;
+      transition: transform var(--transition);
     }
-    .counter .number {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
+    .counter .number { font-family: var(--font-display); font-size: 2.1rem; font-weight: 700; line-height: 1; }
     .counter .label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-dim);
-      margin-top: 2px;
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-dim); margin-top: 4px; font-family: var(--font-mono);
     }
     .counter.free .number { color: var(--green); }
     .counter.occupied .number { color: var(--red); }
     .counter i { margin-right: 6px; }
 
-    /* TREND */
+    /* ============ TREND ============ */
     .trend-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-      padding: 12px 16px;
-      background: var(--bg-soft);
-      border-radius: 12px;
-      border: 1px solid var(--panel-border);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 20px; padding: 12px 16px;
+      background: var(--bg-soft); border-radius: 12px; border: 1px solid var(--panel-border);
     }
+    .trend-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
     .trend-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      padding: 4px 12px;
-      border-radius: 30px;
-      font-weight: 600;
+      font-family: var(--font-mono); font-size: 0.75rem; padding: 5px 13px;
+      border-radius: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
     }
     .trend-badge.remplissage { background: var(--red-dim); color: var(--red); }
     .trend-badge.vidange { background: var(--green-dim); color: var(--green); }
     .trend-badge.stable { background: var(--panel-border); color: var(--text-dim); }
     .trend-badge.donnees_insuffisantes { background: var(--panel-border); color: var(--text-dim); }
+    #etaLabel { font-family: var(--font-mono); color: var(--text-dim); font-size: 0.78rem; }
 
-    /* SIGN */
+    /* ============ LED GUIDANCE SIGN (signature element) ============ */
     .sign {
-      background: #0a0c0a;
-      border: 2px solid #3a3a1f;
-      border-radius: 10px;
-      padding: 16px 20px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1rem;
-      color: var(--yellow);
-      text-shadow: 0 0 12px rgba(255,217,61,0.3);
-      min-height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      transition: all 0.3s;
       position: relative;
+      background:
+        radial-gradient(circle, rgba(255,180,40,0.10) 1px, transparent 1.4px) 0 0/6px 6px,
+        #090a08;
+      border: 3px solid #2a2412;
+      border-radius: 8px;
+      padding: 20px 22px;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--paint);
+      text-shadow: 0 0 6px rgba(244,196,48,0.5), 0 0 16px rgba(244,196,48,0.25);
+      min-height: 78px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      transition: all 0.3s;
       overflow: hidden;
     }
     .sign::before {
       content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.35) 2px, rgba(0,0,0,0.35) 4px);
       pointer-events: none;
     }
-    .sign.loading { color: var(--text-dim); text-shadow: none; }
-    .sign .pulse { animation: pulse-glow 2s ease-in-out infinite; }
+    .sign::after {
+      content: '';
+      position: absolute; left: 0; right: 0; height: 40%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+      top: -100%;
+      animation: scan 5s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scan { 0% { top: -40%; } 100% { top: 100%; } }
+    .sign.loading { color: var(--text-dim); text-shadow: none; font-size: 0.85rem; text-transform: none; letter-spacing: normal; font-weight: 500; }
+    .sign .pulse { animation: pulse-glow 2.2s ease-in-out infinite; }
     @keyframes pulse-glow {
-      0%, 100% { text-shadow: 0 0 8px rgba(255,217,61,0.4); }
-      50% { text-shadow: 0 0 20px rgba(255,217,61,0.8); }
+      0%, 100% { text-shadow: 0 0 6px rgba(244,196,48,0.4), 0 0 16px rgba(244,196,48,0.2); }
+      50% { text-shadow: 0 0 10px rgba(244,196,48,0.8), 0 0 26px rgba(244,196,48,0.4); }
     }
 
-    /* CHART CONTAINERS */
-    .chart-container { height: 140px; margin-top: 12px; }
-    .mini-chart-container { height: 100px; margin-top: 8px; }
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 12px;
-    }
-    .charts-grid .chart-box {
-      background: var(--bg-soft);
-      border-radius: 10px;
-      padding: 12px;
-      border: 1px solid var(--panel-border);
-    }
+    /* ============ CHARTS ============ */
+    .chart-container { height: 150px; margin-top: 12px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+    @media (max-width: 460px) { .charts-grid { grid-template-columns: 1fr; } }
+    .charts-grid .chart-box { background: var(--bg-soft); border-radius: 10px; padding: 12px; border: 1px solid var(--panel-border); }
     .charts-grid .chart-box .chart-label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      text-align: center;
-      margin-bottom: 6px;
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-dim); text-align: center; margin-bottom: 6px; font-family: var(--font-mono);
     }
 
-    /* CHAT */
+    /* ============ CHAT ============ */
     .chat-log {
-      height: 500px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 16px;
-      padding-right: 4px;
-      scroll-behavior: smooth;
+      height: 440px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 16px; padding-right: 4px; scroll-behavior: smooth;
     }
     .msg {
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 0.88rem;
-      line-height: 1.5;
-      max-width: 88%;
-      animation: slideUp 0.25s ease;
-      word-break: break-word;
+      padding: 10px 14px; border-radius: 14px; font-size: 0.88rem; line-height: 1.5;
+      max-width: 88%; animation: slideUp 0.25s ease; word-break: break-word;
     }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .msg.user { align-self: flex-end; background: var(--accent); color: #08151c; border-bottom-right-radius: 4px; font-weight: 500; }
+    .msg.bot { align-self: flex-start; background: var(--bg-soft); border: 1px solid var(--panel-border); border-bottom-left-radius: 4px; }
+    .msg .msg-time { display: block; font-family: var(--font-mono); font-size: 0.62rem; opacity: 0.55; margin-top: 4px; }
+
+    .typing-dots { display: inline-flex; gap: 3px; align-items: center; height: 12px; }
+    .typing-dots span {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--text-dim);
+      animation: bounce 1.2s infinite ease-in-out;
     }
-    .msg.user {
-      align-self: flex-end;
-      background: var(--accent);
-      color: #000;
-      border-bottom-right-radius: 4px;
-    }
-    .msg.bot {
-      align-self: flex-start;
-      background: var(--bg-soft);
-      border: 1px solid var(--panel-border);
-      border-bottom-left-radius: 4px;
-    }
-    .chat-form {
-      display: flex;
-      gap: 10px;
-    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+    .chat-form { display: flex; gap: 10px; }
     .chat-form input {
-      flex: 1;
-      background: var(--bg-soft);
-      border: 1px solid var(--panel-border);
-      border-radius: 30px;
-      padding: 10px 18px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      transition: border var(--transition);
+      flex: 1; background: var(--bg-soft); border: 1px solid var(--panel-border);
+      border-radius: 30px; padding: 11px 18px; color: var(--text);
+      font-family: var(--font-body); font-size: 0.9rem; transition: border var(--transition), box-shadow var(--transition);
     }
-    .chat-form input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,195,247,0.15);
-    }
+    .chat-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(95,184,230,0.15); }
     .chat-form button {
-      background: var(--accent);
-      border: none;
-      border-radius: 30px;
-      padding: 0 22px;
-      font-weight: 600;
-      color: #000;
-      cursor: pointer;
-      transition: all var(--transition);
+      background: var(--accent); border: none; border-radius: 30px; padding: 0 22px;
+      font-weight: 700; color: #08151c; cursor: pointer; transition: all var(--transition);
     }
-    .chat-form button:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(79,195,247,0.3); }
+    .chat-form button:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(95,184,230,0.35); }
     .chat-form button:disabled { opacity: 0.5; pointer-events: none; }
 
-    .footer {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      text-align: center;
-      border-top: 1px solid var(--panel-border);
-      padding-top: 20px;
-      margin-top: 8px;
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip {
+      font-family: var(--font-mono); font-size: 0.7rem; padding: 6px 12px;
+      border-radius: 30px; border: 1px solid var(--panel-border); background: var(--bg-soft);
+      color: var(--text-dim); cursor: pointer; transition: all var(--transition);
     }
+    .chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+    /* ============ TOASTS ============ */
+    .toast-stack {
+      position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column;
+      gap: 8px; z-index: 999;
+    }
+    .toast {
+      font-family: var(--font-mono); font-size: 0.78rem; padding: 10px 16px;
+      border-radius: 10px; background: var(--panel); border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px;
+      animation: toastIn 0.25s ease, toastOut 0.3s ease 2.7s forwards;
+      color: var(--text);
+    }
+    .toast.ok i { color: var(--green); }
+    .toast.err i { color: var(--red); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
+
+    /* ============ FOOTER ============ */
+    .footer {
+      font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim); text-align: center;
+      border-top: 1px dashed var(--panel-border); padding-top: 18px; margin-top: 4px;
+      letter-spacing: 0.3px;
+    }
+    .footer span { margin: 0 6px; }
 
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg-soft); border-radius: 10px; }
     ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
+
+    @media (max-width: 600px) {
+      body { padding: 12px; gap: 14px; }
+      .header { padding: 14px 16px; }
+      .logo h1 { font-size: 1.6rem; }
+      .card { padding: 16px; }
+      .chat-log { height: 340px; }
+    }
   </style>
 </head>
 <body>
 
+  <div class="toast-stack" id="toastStack"></div>
+
   <header class="header">
     <div class="logo">
-      <i class="fas fa-parking"></i>
+      <div class="logo-badge">P</div>
       <div>
         <h1>SmartPark</h1>
-        <p><i class="fas fa-radio"></i> Supervision &amp; prédiction temps réel</p>
+        <p><i class="fas fa-satellite-dish"></i> Supervision &amp; prédiction temps réel</p>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" id="themeToggle" title="Basculer le thème"><i class="fas fa-moon"></i></button>
+      <button class="btn-icon" id="themeToggle" title="Basculer le thème" aria-label="Basculer le thème"><i class="fas fa-moon"></i></button>
       <button class="btn-primary" id="refreshBtn">
         <i class="fas fa-sync-alt" id="refreshIcon"></i>
         <span id="refreshLabel">Actualiser</span>
@@ -462,7 +486,10 @@
         <span class="badge" id="lastUpdate"><i class="far fa-clock"></i> --:--:--</span>
       </div>
 
-      <div class="bay-grid" id="bayGrid"></div>
+      <div class="bay-grid-wrap">
+        <div class="sweep-line" id="sweepLine"></div>
+        <div class="bay-grid" id="bayGrid"></div>
+      </div>
 
       <div class="counters">
         <div class="counter free">
@@ -477,9 +504,9 @@
 
       <div class="trend-bar">
         <i class="fas fa-chart-line" style="color:var(--text-dim);"></i>
-        <span style="color:var(--text-dim);">Tendance :</span>
+        <span class="trend-label">Tendance :</span>
         <span class="trend-badge" id="trendBadge">--</span>
-        <span id="etaLabel" style="color:var(--text-dim);font-size:0.8rem;"></span>
+        <span id="etaLabel"></span>
       </div>
 
       <div class="card-title" style="margin-top:8px;">
@@ -497,34 +524,33 @@
 
     <!-- COLONNE DROITE -->
     <div>
-      <!-- Carte des graphiques supplémentaires -->
       <div class="card" style="margin-bottom:20px;">
-        <div class="card-title"><span><i class="fas fa-chart-pie"></i> Répartition &amp; Tendances</span></div>
+        <div class="card-title"><span><i class="fas fa-chart-pie"></i> Répartition &amp; tendances</span></div>
         <div class="charts-grid">
           <div class="chart-box">
             <div class="chart-label">Occupancy</div>
-            <div style="height:100px;">
-              <canvas id="doughnutChart"></canvas>
-            </div>
+            <div style="height:100px;"><canvas id="doughnutChart"></canvas></div>
           </div>
           <div class="chart-box">
             <div class="chart-label">Dernières 10 places occupées</div>
-            <div style="height:100px;">
-              <canvas id="barChart"></canvas>
-            </div>
+            <div style="height:100px;"><canvas id="barChart"></canvas></div>
           </div>
         </div>
       </div>
 
-      <!-- Carte du chat -->
       <div class="card">
         <div class="card-title"><span><i class="fas fa-robot"></i> Assistant IA</span></div>
         <div class="chat-log" id="chatLog">
           <div class="msg bot"><i class="fas fa-comment"></i> Bonjour ! Posez-moi une question sur le parking, par exemple : <em>"Combien de temps avant qu'il soit plein ?"</em></div>
         </div>
+        <div class="chip-row" id="chipRow">
+          <button class="chip" type="button" data-q="Combien de places sont libres ?">Places libres ?</button>
+          <button class="chip" type="button" data-q="Combien de temps avant saturation ?">Temps avant saturation ?</button>
+          <button class="chip" type="button" data-q="Quelle est la tendance actuelle ?">Tendance actuelle ?</button>
+        </div>
         <form class="chat-form" id="chatForm">
-          <input type="text" id="chatInput" placeholder="Posez votre question..." autocomplete="off" />
-          <button type="submit" id="chatSend"><i class="fas fa-paper-plane"></i></button>
+          <input type="text" id="chatInput" placeholder="Posez votre question..." autocomplete="off" aria-label="Message pour l'assistant" />
+          <button type="submit" id="chatSend" aria-label="Envoyer"><i class="fas fa-paper-plane"></i></button>
         </form>
       </div>
     </div>
@@ -532,12 +558,14 @@
   </div>
 
   <footer class="footer">
-    <i class="fas fa-server"></i> Flask &middot; <i class="fas fa-database"></i> MongoDB (mock) &middot; <i class="fas fa-cloud"></i> ThingSpeak &middot; <i class="fas fa-brain"></i> Groq LLM
+    <span><i class="fas fa-server"></i> Flask</span>&middot;
+    <span><i class="fas fa-database"></i> MongoDB (mock)</span>&middot;
+    <span><i class="fas fa-cloud"></i> ThingSpeak</span>&middot;
+    <span><i class="fas fa-brain"></i> Groq LLM</span>
   </footer>
 
   <script>
-   //const API_BASE = "http://localhost:5000";
-   const API_BASE = "https://parking-backend-iv9j.onrender.com";
+    const API_BASE = "https://parking-backend-iv9j.onrender.com";
     const TOTAL_SLOTS = 10;
     const REFRESH_INTERVAL = 3000;
 
@@ -555,41 +583,80 @@
     const refreshIcon = document.getElementById("refreshIcon");
     const lastUpdate = document.getElementById("lastUpdate");
     const themeToggle = document.getElementById("themeToggle");
+    const toastStack = document.getElementById("toastStack");
+    const chipRow = document.getElementById("chipRow");
 
     // Chart instances
     let historyChartInstance = null;
     let doughnutChartInstance = null;
     let barChartInstance = null;
+    let wasConnected = null; // tracks connection transitions for toasts
+    let prevAvailable = null;
 
-    // Build bay grid
+    // Build bay grid (skeleton first)
     for (let i = 0; i < TOTAL_SLOTS; i++) {
       const bay = document.createElement("div");
-      bay.className = "bay";
-      bay.innerHTML = `<i class="fas fa-circle"></i><span>P${i+1}</span>`;
+      bay.className = "bay skeleton";
+      bay.innerHTML = `<i class="fas fa-circle"></i><span>P${i + 1}</span>`;
       bay.dataset.index = i;
       bayGrid.appendChild(bay);
     }
 
+    function showToast(message, type = "ok") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      const icon = type === "ok" ? "fa-check-circle" : "fa-triangle-exclamation";
+      el.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+      toastStack.appendChild(el);
+      setTimeout(() => el.remove(), 3100);
+    }
+
     function setConnection(ok) {
       connDot.classList.toggle("online", ok);
-      connLabel.innerHTML = ok ? '<i class="fas fa-wifi"></i> connecté' : '<i class="fas fa-exclamation-triangle"></i> hors ligne';
+      connLabel.innerHTML = ok
+        ? '<i class="fas fa-wifi"></i> connecté'
+        : '<i class="fas fa-exclamation-triangle"></i> hors ligne';
+      if (wasConnected !== null && ok !== wasConnected) {
+        showToast(ok ? "Connexion rétablie" : "Connexion perdue", ok ? "ok" : "err");
+      }
+      wasConnected = ok;
     }
 
     function updateTimestamp() {
       lastUpdate.innerHTML = `<i class="far fa-clock"></i> ${new Date().toLocaleTimeString()}`;
     }
 
+    // Animate a number counting from its current text to a target value
+    function animateNumber(el, target) {
+      const start = parseInt(el.textContent, 10);
+      const from = isNaN(start) ? target : start;
+      if (from === target) { el.textContent = target; return; }
+      const duration = 400;
+      const startTime = performance.now();
+      function step(now) {
+        const p = Math.min(1, (now - startTime) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(from + (target - from) * eased);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
     function renderBays(available) {
       const bays = bayGrid.children;
       for (let i = 0; i < bays.length; i++) {
         const isFree = i < available;
+        const wasSkeleton = bays[i].classList.contains("skeleton");
+        const wasFree = bays[i].classList.contains("free");
+        bays[i].classList.remove("skeleton");
         bays[i].classList.toggle("free", isFree);
         bays[i].classList.toggle("occupied", !isFree);
-        const icon = bays[i].querySelector("i");
-        if (icon) {
-          icon.className = isFree ? "fas fa-circle" : "fas fa-circle";
-          icon.style.color = isFree ? "var(--green)" : "var(--red)";
+        if (!wasSkeleton && wasFree !== isFree) {
+          bays[i].classList.add("just-changed");
+          setTimeout(() => bays[i].classList.remove("just-changed"), 620);
         }
+        const icon = bays[i].querySelector("i");
+        if (icon) icon.className = isFree ? "fas fa-circle" : "fas fa-circle";
       }
     }
 
@@ -620,11 +687,11 @@
         const data = await fetchStatus();
         setConnection(true);
         renderBays(data.available);
-        freeCount.textContent = data.available;
-        occCount.textContent = data.occupied;
+        animateNumber(freeCount, data.available);
+        animateNumber(occCount, data.occupied);
         updateTimestamp();
-        // Update doughnut chart with latest data
         updateDoughnutChart(data.available, data.occupied);
+        prevAvailable = data.available;
       } catch (e) {
         setConnection(false);
       } finally {
@@ -661,8 +728,10 @@
       const ctx = document.getElementById("doughnutChart").getContext("2d");
       if (doughnutChartInstance) doughnutChartInstance.destroy();
 
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
-      const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
+      const panelColor = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#1e2028';
+      const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9099';
+      const green = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#34d399';
+      const red = getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#fb7185';
 
       doughnutChartInstance = new Chart(ctx, {
         type: "doughnut",
@@ -670,20 +739,17 @@
           labels: ["Libres", "Occupées"],
           datasets: [{
             data: [available, occupied],
-            backgroundColor: ["#66d9a0", "#ff6b6b"],
-            borderColor: [textColor, textColor],
-            borderWidth: 1
+            backgroundColor: [green, red],
+            borderColor: [panelColor, panelColor],
+            borderWidth: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "60%",
-          plugins: {
-            legend: {
-              labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 }
-            }
-          }
+          cutout: "62%",
+          animation: { animateRotate: true, duration: 500 },
+          plugins: { legend: { labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 } } }
         }
       });
     }
@@ -698,8 +764,8 @@
         const ctx = document.getElementById("barChart").getContext("2d");
         if (barChartInstance) barChartInstance.destroy();
 
-        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
-        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
+        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9099';
+        const red = getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#fb7185';
 
         barChartInstance = new Chart(ctx, {
           type: "bar",
@@ -708,28 +774,20 @@
             datasets: [{
               label: "Occupées",
               data: occupied,
-              backgroundColor: "#ff6b6b",
-              borderColor: "#ff6b6b",
-              borderWidth: 1
+              backgroundColor: red,
+              borderColor: red,
+              borderRadius: 4,
+              borderWidth: 0
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 }
-              }
-            },
+            animation: { duration: 400 },
+            plugins: { legend: { labels: { color: dimColor, font: { size: 8 }, boxWidth: 8 } } },
             scales: {
-              x: {
-                ticks: { color: dimColor, font: { size: 6 }, maxTicksLimit: 10 },
-                grid: { display: false }
-              },
-              y: {
-                ticks: { color: dimColor, font: { size: 6 }, stepSize: 2 },
-                grid: { color: 'rgba(255,255,255,0.05)' }
-              }
+              x: { ticks: { color: dimColor, font: { size: 6 }, maxTicksLimit: 10 }, grid: { display: false } },
+              y: { ticks: { color: dimColor, font: { size: 6 }, stepSize: 2 }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
           }
         });
@@ -749,8 +807,10 @@
         const ctx = document.getElementById("historyChart").getContext("2d");
         if (historyChartInstance) historyChartInstance.destroy();
 
-        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#eef2f8';
-        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9ab0';
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#edeff3';
+        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#8b9099';
+        const green = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#34d399';
+        const red = getComputedStyle(document.documentElement).getPropertyValue('--red').trim() || '#fb7185';
 
         historyChartInstance = new Chart(ctx, {
           type: "line",
@@ -758,46 +818,25 @@
             labels: labels,
             datasets: [
               {
-                label: "Libres",
-                data: available,
-                borderColor: "#66d9a0",
-                backgroundColor: "rgba(102,217,160,0.12)",
-                fill: true,
-                tension: 0.4,
-                pointRadius: 2,
-                pointBackgroundColor: "#66d9a0",
-                borderWidth: 2
+                label: "Libres", data: available,
+                borderColor: green, backgroundColor: "rgba(52,211,153,0.12)",
+                fill: true, tension: 0.4, pointRadius: 2, pointBackgroundColor: green, borderWidth: 2
               },
               {
-                label: "Occupées",
-                data: occupied,
-                borderColor: "#ff6b6b",
-                backgroundColor: "rgba(255,107,107,0.12)",
-                fill: true,
-                tension: 0.4,
-                pointRadius: 2,
-                pointBackgroundColor: "#ff6b6b",
-                borderWidth: 2
+                label: "Occupées", data: occupied,
+                borderColor: red, backgroundColor: "rgba(251,113,133,0.12)",
+                fill: true, tension: 0.4, pointRadius: 2, pointBackgroundColor: red, borderWidth: 2
               }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                labels: { color: textColor, font: { size: 10, weight: '500' }, boxWidth: 12 }
-              }
-            },
+            animation: { duration: 400 },
+            plugins: { legend: { labels: { color: textColor, font: { size: 10, weight: '500' }, boxWidth: 12 } } },
             scales: {
-              x: {
-                ticks: { color: dimColor, maxTicksLimit: 8, font: { size: 9 } },
-                grid: { color: 'rgba(255,255,255,0.05)' }
-              },
-              y: {
-                ticks: { color: dimColor, stepSize: 2, font: { size: 9 } },
-                grid: { color: 'rgba(255,255,255,0.05)' }
-              }
+              x: { ticks: { color: dimColor, maxTicksLimit: 8, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+              y: { ticks: { color: dimColor, stepSize: 2, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
             },
             interaction: { intersect: false, mode: 'index' }
           }
@@ -809,11 +848,7 @@
 
     async function refreshAll() {
       await refreshStatus();
-      await Promise.all([
-        refreshPrediction(),
-        refreshHistoryChart(),
-        refreshBarChart()
-      ]);
+      await Promise.all([refreshPrediction(), refreshHistoryChart(), refreshBarChart()]);
     }
 
     // Event listeners
@@ -827,10 +862,12 @@
       const next = current === "light" ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", next);
       themeToggle.innerHTML = next === "light" ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-      // Redraw charts with new colors
       refreshHistoryChart();
       refreshBarChart();
-      // Doughnut is recreated each time via refreshStatus
+      updateDoughnutChart(
+        parseInt(freeCount.textContent, 10) || 0,
+        parseInt(occCount.textContent, 10) || 0
+      );
     });
 
     // Chat
@@ -839,21 +876,38 @@
     const chatInput = document.getElementById("chatInput");
     const chatSend = document.getElementById("chatSend");
 
+    function timeNow() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
     function addMessage(text, who) {
       const div = document.createElement("div");
       div.className = "msg " + who;
-      div.innerHTML = text;
+      div.innerHTML = `${text}<span class="msg-time">${timeNow()}</span>`;
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+      return div;
+    }
+
+    function addTypingIndicator() {
+      const div = document.createElement("div");
+      div.className = "msg bot";
+      div.id = "typingIndicator";
+      div.innerHTML = `<i class="fas fa-robot"></i> <span class="typing-dots"><span></span><span></span><span></span></span>`;
       chatLog.appendChild(div);
       chatLog.scrollTop = chatLog.scrollHeight;
     }
+    function removeTypingIndicator() {
+      const el = document.getElementById("typingIndicator");
+      if (el) el.remove();
+    }
 
-    chatForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msg = chatInput.value.trim();
+    async function sendChatMessage(msg) {
       if (!msg) return;
       addMessage(`<i class="fas fa-user"></i> ${msg}`, "user");
       chatInput.value = "";
       chatSend.disabled = true;
+      addTypingIndicator();
 
       try {
         const res = await fetch(`${API_BASE}/api/chat`, {
@@ -862,13 +916,26 @@
           body: JSON.stringify({ message: msg }),
         });
         const data = await res.json();
+        removeTypingIndicator();
         addMessage(`<i class="fas fa-robot"></i> ${data.reply || "Je n'ai pas de réponse."}`, "bot");
       } catch (err) {
+        removeTypingIndicator();
         addMessage('<i class="fas fa-exclamation-circle"></i> Erreur de connexion au serveur.', "bot");
       } finally {
         chatSend.disabled = false;
         chatInput.focus();
       }
+    }
+
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendChatMessage(chatInput.value.trim());
+    });
+
+    chipRow.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      sendChatMessage(btn.dataset.q);
     });
 
     // Initialisation
